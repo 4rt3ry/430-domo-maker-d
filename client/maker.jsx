@@ -9,13 +9,14 @@ const handleDomo = (e, onDomoAdded) => {
 
     const name = e.target.querySelector("#domoName").value;
     const age = e.target.querySelector("#domoAge").value;
+    const mood = e.target.querySelector("#domoMood").value;
 
-    if (!name || !age) {
+    if (!name || !age || !mood) {
         helper.handleError("All fields are required");
         return false;
     }
 
-    helper.sendPost(e.target.action, { name, age }, onDomoAdded);
+    helper.sendPost(e.target.action, { name, age, mood }, onDomoAdded);
     return false;
 }
 
@@ -32,6 +33,15 @@ const DomoForm = (props) => {
             <input id="domoName" type="text" name="name" placeholder="Domo Name" />
             <label htmlFor="age">Age: </label>
             <input id="domoAge" type="number" name="age" min="0" />
+            <label htmlFor="mood">Mood: </label>
+            <select name="mood" id="domoMood">
+                <option value="Happy">Happy</option>
+                <option value="Sad">Sad</option>
+                <option value="Angry">Angry</option>
+                <option value="Depressed">Depressed</option>
+                <option value="Curious">Curious</option>
+                <option value="Feisty">Feisty</option>
+            </select>
             <input className="makeDomoSubmit" type="submit" value="Make Domo" />
 
         </form>
@@ -58,12 +68,24 @@ const DomoList = (props) => {
         );
     }
 
+    const deleteDomo = async (id, handler) => {
+        await helper.sendDelete('/deleteDomo', { id });
+        if (handler) handler();
+    }
+
     const domoNodes = domos.map(domo => {
+
         return (
-            <div key={domo.id} className="domo">
+            <div key={domo._id} className="domo">
                 <img src="/assets/img/domoface.jpeg" alt="domo face" className="domoFace" />
-                <h3 className="domoName">Name: {domo.name}</h3>
-                <h3 className="domoAge">Age: {domo.age}</h3>
+                <div className="description">
+                    <h3 className="domoName">Name: {domo.name}</h3>
+                    <h3 className="domoAge">Age: {domo.age}</h3>
+                    <h3 className="domoMood">Mood: {domo.mood}</h3>
+                </div>
+                <button className="deleteDomo" onClick={() => { deleteDomo(domo._id, props.triggerReload); }}>
+                    Delete
+                </button>
             </div>
         );
     });
@@ -84,7 +106,7 @@ const App = () => {
                 <DomoForm triggerReload={() => setReloadDomos(!reloadDomos)} />
             </div>
             <div id="domos">
-                <DomoList domos={[]} reloadDomos={reloadDomos} />
+                <DomoList domos={[]} reloadDomos={reloadDomos} triggerReload={() => setReloadDomos(!reloadDomos)} />
             </div>
         </div>
     );
@@ -92,7 +114,7 @@ const App = () => {
 
 const init = () => {
     const root = createRoot(document.querySelector("#app"));
-    root.render(<App/>);
+    root.render(<App />);
 };
 
 window.onload = init;
